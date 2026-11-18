@@ -3,8 +3,9 @@
   
 """Candidate generation: for every GPS observation, find nearby road arcs.
 
-A "candidate" is (observation, arc) within CANDIDATE_RADIUS_M metres. The
-classifier then scores each candidate (is this the arc the vehicle is on?).
+A "candidate" is an (observation, arc) pair within the search radius.
+Observations with no candidates retry at 100 m and then 150 m, using at
+least the configured radius. The classifier scores each candidate.
 
 Labels: the reference route (.route) is a sequence of arc_ids. For each
 observation we take the *nearest route arc* as its reference arc. This is an
@@ -58,7 +59,22 @@ def build_candidates(trip: Trip, radius: float = config.CANDIDATE_RADIUS_M,
     lines = shapely.linestrings(np.stack([a, b], axis=1))
     tree = STRtree(lines)
     pts = shapely.points(obs_xy)
+    # First search using the normal radius.
     oi, ai = tree.query(pts, predicate="dwithin", distance=radius)
+    # Expand the search only for observations with no candidates.
+    for fallback_radius in (100.0, 150.0):
+        counts = np.bincount(oi, minlength=n_obs)
+        missing = np.flatnonzero(counts == 0)
+        if len(missing) == 0:
+            break
+        local_oi, local_ai = tree.query(
+            pts[missing],
+            predicate="dwithin",
+            distance=max(radius, fallback_radius),
+        )
+        if len(local_oi):
+            oi = np.concatenate([oi, missing[local_oi]])
+            ai = np.concatenate([ai, local_ai])
 
     dist, frac = point_to_segments(obs_xy[oi], a[ai], b[ai]) if len(oi) else (np.empty(0), np.empty(0))
 
