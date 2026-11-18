@@ -1,3 +1,6 @@
+
+    
+  
 """Candidate generation: for every GPS observation, find nearby road arcs.
 
 A "candidate" is (observation, arc) within CANDIDATE_RADIUS_M metres. The
@@ -60,7 +63,7 @@ def build_candidates(trip: Trip, radius: float = config.CANDIDATE_RADIUS_M,
     dist, frac = point_to_segments(obs_xy[oi], a[ai], b[ai]) if len(oi) else (np.empty(0), np.empty(0))
 
     # keep the k nearest arcs per observation
-    order = np.lexsort((dist, oi))
+    order = np.lexsort((ai, dist, oi))  # obs, distance, then arc ID
     oi, ai, dist, frac = oi[order], ai[order], dist[order], frac[order]
     counts = np.bincount(oi, minlength=n_obs)
     starts = np.concatenate([[0], np.cumsum(counts)[:-1]])
@@ -108,11 +111,21 @@ def build_candidates(trip: Trip, radius: float = config.CANDIDATE_RADIUS_M,
     if with_labels and len(trip.route):
         route_arcs = np.unique(trip.route)
         rtree = STRtree(lines[route_arcs])
-        qi, ri = rtree.query_nearest(pts, all_matches=False)
+        # Include equidistant matches, then choose the lowest arc ID.
+        # This removes dependence on STRtree traversal order.
+        (qi, ri), nearest_dist = rtree.query_nearest(
+            pts, all_matches=True, return_distance=True
+        )
+        candidate_arc_ids = route_arcs[ri]
+        tie_order = np.lexsort((candidate_arc_ids, nearest_dist, qi))
+        qi = qi[tie_order]
+        candidate_arc_ids = candidate_arc_ids[tie_order]
+        first = np.unique(qi, return_index=True)[1]
         gt = np.full(n_obs, -1, dtype=np.int64)
-        gt[qi] = route_arcs[ri]
+        gt[qi[first]] = candidate_arc_ids[first]
         obs["gt_arc"] = gt
         cand["label"] = (cand["arc_id"].to_numpy() == gt[cand["obs_idx"].to_numpy()]).astype(np.int8)
         hit = cand.groupby("obs_idx")["label"].max().reindex(range(n_obs), fill_value=0)
         obs["gt_in_candidates"] = hit.to_numpy().astype(np.int8)
     return cand, obs
+
