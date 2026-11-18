@@ -44,11 +44,12 @@ export PATHSNAP_DATA_DIR="/path/to/Student folder"   # default: ../Student folde
 python scripts/01_inventory.py          # dataset inventory + data-quality checks -> reports/inventory_*.csv
 python scripts/02_build_candidates.py   # candidates, features, labels, candidate miss rate
 python scripts/03_train_compare.py      # >=5 models, 5-fold GroupKFold CV, student-test scores
-python scripts/04b_bayes_opt.py 25      # Bayesian optimisation (Optuna TPE) of the chosen model
+python scripts/04b_bayes_opt.py 25 600  # Bayesian optimisation (Optuna TPE) of the chosen model
 python scripts/05_export_model.py       # fit final model on the 80 training trips -> artifacts/
 python scripts/04_hmm_eval.py <model>   # tune HMM parameters (train OOF only) + classifier vs HMM
 python scripts/06_make_maps.py student_test 00000000   # Folium maps -> maps/
 python scripts/07_plots.py              # figures -> reports/figures/
+python scripts/08_results_summary.py    # tables -> reports/results_tables.md
 ```
 
 Seeds are fixed (`RANDOM_SEED = 42` in `src/pathsnap/config.py`). Every result quoted in
@@ -56,26 +57,62 @@ the report comes from the CSV/JSON files in `reports/`.
 
 ## Run the system (two laptops)
 
-**Laptop 1 - API + model** (set the partition that holds the trips to be served):
+Both laptops must be on the **same network**. College Wi-Fi often blocks device-to-device
+traffic ("client isolation"); if it does, use a phone hotspot or an ethernet cable.
+
+### Laptop 1 - API + model
+
+Linux / macOS:
 
 ```bash
-export PATHSNAP_DATA_DIR="/path/to/data"
-export PATHSNAP_EVAL_PARTITION=student_test     # or the evaluator partition folder name
-uvicorn api.main:app --host 0.0.0.0 --port 8000
+export PATHSNAP_DATA_DIR="/path/to/Student folder"   # folder containing train/ and student_test/
+export PATHSNAP_EVAL_PARTITION=student_test           # partition served to the UI
+./run_api.sh                                          # prints this laptop's LAN address
 ```
 
-Every request is logged to this console (`POST /predict trip_id=...`).
+Windows (CMD):
 
-**Laptop 2 - UI:**
+```bat
+set PATHSNAP_DATA_DIR=C:\path\to\Student folder
+set PATHSNAP_EVAL_PARTITION=student_test
+.venv\Scripts\uvicorn api.main:app --host 0.0.0.0 --port 8000
+ipconfig
+```
+
+Find the IPv4 address (Linux: `hostname -I`, Windows: `ipconfig`) and allow port 8000 through
+the firewall (Linux: `sudo ufw allow 8000/tcp`; Windows: allow an inbound rule for TCP 8000 or
+accept the Python prompt). Every request is logged in this console.
+
+### Laptop 2 - UI
+
+Do **not** double-click `ui/index.html`. Serve it over http:
 
 ```bash
-cd ui && python3 -m http.server 8080
-# open http://localhost:8080, enter  http://<laptop-1-ip>:8000  as the API address,
-# click "Load trips", choose a trip, click "Run prediction".
+./run_ui.sh                      # or:  cd ui && python3 -m http.server 8080
 ```
+
+Windows: `cd ui` then `python -m http.server 8080`. Open `http://localhost:8080`, enter
+`http://<laptop-1-address>:8000` as the API address, click **Load trips**, choose a trip, click
+**Run prediction**. Check the connection first from laptop 2 with
+`curl http://<laptop-1-address>:8000/health` (or open that URL in the browser).
 
 Ground truth (`.route`) is read only inside the server-side scoring step, never by the
 prediction pipeline and never sent to the UI.
+
+### Viewing the Folium maps
+
+Serve them over http as well: `cd maps && python3 -m http.server 8090`, then open
+`http://localhost:8090/map_student_test_00000000.html`.
+
+### Troubleshooting
+
+| Symptom | Cause and fix |
+|---|---|
+| Map tiles all say **"Access blocked"** | The HTML was opened as a file (`file://`). OpenStreetMap blocks tile requests without a Referer. Serve the page over http as above. |
+| **"Cannot reach the API"** / `Failed to fetch` | Wrong address, different network, or firewall. Check with `curl http://<ip>:8000/health` from laptop 2; start the API with `--host 0.0.0.0` (not 127.0.0.1); allow port 8000; try a phone hotspot. |
+| Browser console shows `ERR_BLOCKED_BY_CLIENT` | A browser extension (ad/privacy blocker), security software or browser policy blocked the request. Disable it for the page, or use a private window / another browser. |
+| Page loads but the map area is empty | The Leaflet files come from `unpkg.com`; a network that blocks it hides the map. Use another network. |
+| API fails to start with a data-path error | Set `PATHSNAP_DATA_DIR` to the folder containing `train/` and `student_test/`. |
 
 ## Notes on the data
 

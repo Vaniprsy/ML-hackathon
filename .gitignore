@@ -24,3 +24,7 @@ data/processed/
 .DS_Store
 .idea/
 .vscode/
+
+# Evaluator trips include reference routes; they stay on the API laptop only, never in git
+evaluator_test/
+evaluator_test.zip
