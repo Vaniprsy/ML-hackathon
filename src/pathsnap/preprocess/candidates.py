@@ -1,7 +1,11 @@
+
+    
+  
 """Candidate generation: for every GPS observation, find nearby road arcs.
 
-A "candidate" is (observation, arc) within CANDIDATE_RADIUS_M metres. The
-classifier then scores each candidate (is this the arc the vehicle is on?).
+A "candidate" is an (observation, arc) pair within the search radius.
+Observations with no candidates retry at 100 m and then 150 m, using at
+least the configured radius. The classifier scores each candidate.
 
 Labels: the reference route (.route) is a sequence of arc_ids. For each
 observation we take the *nearest route arc* as its reference arc. This is an
@@ -55,12 +59,27 @@ def build_candidates(trip: Trip, radius: float = config.CANDIDATE_RADIUS_M,
     lines = shapely.linestrings(np.stack([a, b], axis=1))
     tree = STRtree(lines)
     pts = shapely.points(obs_xy)
+    # First search using the normal radius.
     oi, ai = tree.query(pts, predicate="dwithin", distance=radius)
+    # Expand the search only for observations with no candidates.
+    for fallback_radius in (100.0, 150.0):
+        counts = np.bincount(oi, minlength=n_obs)
+        missing = np.flatnonzero(counts == 0)
+        if len(missing) == 0:
+            break
+        local_oi, local_ai = tree.query(
+            pts[missing],
+            predicate="dwithin",
+            distance=max(radius, fallback_radius),
+        )
+        if len(local_oi):
+            oi = np.concatenate([oi, missing[local_oi]])
+            ai = np.concatenate([ai, local_ai])
 
     dist, frac = point_to_segments(obs_xy[oi], a[ai], b[ai]) if len(oi) else (np.empty(0), np.empty(0))
 
     # keep the k nearest arcs per observation
-    order = np.lexsort((dist, oi))
+    order = np.lexsort((ai, dist, oi))  # obs, distance, then arc ID
     oi, ai, dist, frac = oi[order], ai[order], dist[order], frac[order]
     counts = np.bincount(oi, minlength=n_obs)
     starts = np.concatenate([[0], np.cumsum(counts)[:-1]])
@@ -108,11 +127,21 @@ def build_candidates(trip: Trip, radius: float = config.CANDIDATE_RADIUS_M,
     if with_labels and len(trip.route):
         route_arcs = np.unique(trip.route)
         rtree = STRtree(lines[route_arcs])
-        qi, ri = rtree.query_nearest(pts, all_matches=False)
+        # Include equidistant matches, then choose the lowest arc ID.
+        # This removes dependence on STRtree traversal order.
+        (qi, ri), nearest_dist = rtree.query_nearest(
+            pts, all_matches=True, return_distance=True
+        )
+        candidate_arc_ids = route_arcs[ri]
+        tie_order = np.lexsort((candidate_arc_ids, nearest_dist, qi))
+        qi = qi[tie_order]
+        candidate_arc_ids = candidate_arc_ids[tie_order]
+        first = np.unique(qi, return_index=True)[1]
         gt = np.full(n_obs, -1, dtype=np.int64)
-        gt[qi] = route_arcs[ri]
+        gt[qi[first]] = candidate_arc_ids[first]
         obs["gt_arc"] = gt
         cand["label"] = (cand["arc_id"].to_numpy() == gt[cand["obs_idx"].to_numpy()]).astype(np.int8)
         hit = cand.groupby("obs_idx")["label"].max().reindex(range(n_obs), fill_value=0)
         obs["gt_in_candidates"] = hit.to_numpy().astype(np.int8)
     return cand, obs
+
