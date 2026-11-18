@@ -1,0 +1,25 @@
+{
+  "algorithm": "HistGradientBoostingClassifier",
+  "params": {
+    "max_iter": 200,
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 31
+  },
+  "features": [
+    "dist_m",
+    "rel_dist_m",
+    "rank",
+    "frac",
+    "arc_len_m",
+    "head_diff",
+    "heading_valid",
+    "to_out_deg",
+    "from_in_deg",
+    "speed_mps",
+    "dt_prev_s",
+    "dt_next_s",
+    "n_within_radius"
+  ],
+  "trained_on": "80 training trips",
+  "seed": 42
+}
