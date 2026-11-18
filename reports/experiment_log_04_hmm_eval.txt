@@ -1,0 +1,56 @@
+prepared network distances for 80+10 trips in 9s
+classifier-only on tuning trips: top1_all=0.7838
+  beta=  3.0 lam=  4.0 w=0.15  top1_all=0.7683 continuity=0.9413
+  beta=  3.0 lam=  4.0 w= 0.3  top1_all=0.7907 continuity=0.9503
+  beta=  3.0 lam=  4.0 w= 0.5  top1_all=0.8003 continuity=0.9544
+  beta=  3.0 lam=  4.0 w= 1.0  top1_all=0.8050 continuity=0.9547
+  beta=  3.0 lam=  8.0 w=0.15  top1_all=0.7777 continuity=0.9617
+  beta=  3.0 lam=  8.0 w= 0.3  top1_all=0.7958 continuity=0.9658
+  beta=  3.0 lam=  8.0 w= 0.5  top1_all=0.8039 continuity=0.9679
+  beta=  3.0 lam=  8.0 w= 1.0  top1_all=0.8081 continuity=0.9664
+  beta=  3.0 lam= 16.0 w=0.15  top1_all=0.7823 continuity=0.9684
+  beta=  3.0 lam= 16.0 w= 0.3  top1_all=0.7988 continuity=0.9713
+  beta=  3.0 lam= 16.0 w= 0.5  top1_all=0.8060 continuity=0.9729
+  beta=  3.0 lam= 16.0 w= 1.0  top1_all=0.8102 continuity=0.9740
+  beta=  6.0 lam=  4.0 w=0.15  top1_all=0.7958 continuity=0.9658
+  beta=  6.0 lam=  4.0 w= 0.3  top1_all=0.8062 continuity=0.9682
+  beta=  6.0 lam=  4.0 w= 0.5  top1_all=0.8081 continuity=0.9664
+  beta=  6.0 lam=  4.0 w= 1.0  top1_all=0.8099 continuity=0.9604
+  beta=  6.0 lam=  8.0 w=0.15  top1_all=0.7988 continuity=0.9713
+  beta=  6.0 lam=  8.0 w= 0.3  top1_all=0.8079 continuity=0.9735
+  beta=  6.0 lam=  8.0 w= 0.5  top1_all=0.8102 continuity=0.9740
+  beta=  6.0 lam=  8.0 w= 1.0  top1_all=0.8111 continuity=0.9718
+  beta=  6.0 lam= 16.0 w=0.15  top1_all=0.7947 continuity=0.9729
+  beta=  6.0 lam= 16.0 w= 0.3  top1_all=0.8035 continuity=0.9743
+  beta=  6.0 lam= 16.0 w= 0.5  top1_all=0.8085 continuity=0.9752
+  beta=  6.0 lam= 16.0 w= 1.0  top1_all=0.8106 continuity=0.9749
+  beta= 10.0 lam=  4.0 w=0.15  top1_all=0.8048 continuity=0.9723
+  beta= 10.0 lam=  4.0 w= 0.3  top1_all=0.8084 continuity=0.9730
+  beta= 10.0 lam=  4.0 w= 0.5  top1_all=0.8106 continuity=0.9710
+  beta= 10.0 lam=  4.0 w= 1.0  top1_all=0.8105 continuity=0.9620
+  beta= 10.0 lam=  8.0 w=0.15  top1_all=0.8034 continuity=0.9740
+  beta= 10.0 lam=  8.0 w= 0.3  top1_all=0.8100 continuity=0.9750
+  beta= 10.0 lam=  8.0 w= 0.5  top1_all=0.8118 continuity=0.9749
+  beta= 10.0 lam=  8.0 w= 1.0  top1_all=0.8107 continuity=0.9722
+  beta= 10.0 lam= 16.0 w=0.15  top1_all=0.8007 continuity=0.9743
+  beta= 10.0 lam= 16.0 w= 0.3  top1_all=0.8057 continuity=0.9752
+  beta= 10.0 lam= 16.0 w= 0.5  top1_all=0.8088 continuity=0.9754
+  beta= 10.0 lam= 16.0 w= 1.0  top1_all=0.8099 continuity=0.9738
+  beta= 20.0 lam=  4.0 w=0.15  top1_all=0.8100 continuity=0.9750
+  beta= 20.0 lam=  4.0 w= 0.3  top1_all=0.8102 continuity=0.9745
+  beta= 20.0 lam=  4.0 w= 0.5  top1_all=0.8107 continuity=0.9722
+  beta= 20.0 lam=  4.0 w= 1.0  top1_all=0.8117 continuity=0.9617
+  beta= 20.0 lam=  8.0 w=0.15  top1_all=0.8057 continuity=0.9752
+  beta= 20.0 lam=  8.0 w= 0.3  top1_all=0.8096 continuity=0.9752
+  beta= 20.0 lam=  8.0 w= 0.5  top1_all=0.8099 continuity=0.9738
+  beta= 20.0 lam=  8.0 w= 1.0  top1_all=0.8090 continuity=0.9695
+  beta= 20.0 lam= 16.0 w=0.15  top1_all=0.8037 continuity=0.9751
+  beta= 20.0 lam= 16.0 w= 0.3  top1_all=0.8073 continuity=0.9750
+  beta= 20.0 lam= 16.0 w= 0.5  top1_all=0.8079 continuity=0.9739
+  beta= 20.0 lam= 16.0 w= 1.0  top1_all=0.8085 continuity=0.9700
+best decoder params: {'beta': 10.0, 'lam': 8.0, 'w': 0.5}
+            partition          method  top1_all  top1_covered  route_continuity  decode_s
+   train_oof_80_trips classifier_only  0.748120      0.831140          0.918188       NaN
+   train_oof_80_trips  classifier+HMM  0.795535      0.883816          0.978999  2.530658
+student_test_10_trips classifier_only  0.840919      0.842369          0.920574       NaN
+student_test_10_trips  classifier+HMM  0.874061      0.875569          0.980157  0.240105

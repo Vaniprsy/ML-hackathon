@@ -1,5 +1,5 @@
 {
-  "model": "logreg",
+  "model": "hist_gb_tuned",
   "beta": 10.0,
   "lam": 8.0,
   "w": 0.5,
